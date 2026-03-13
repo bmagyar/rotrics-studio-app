@@ -1,3 +1,27 @@
+# Docker Setup (recommended)
+
+Run the web UI and server without installing any dependencies locally.
+
+```bash
+docker compose up
+```
+
+This starts two services:
+- **web** — UI served at http://localhost:8080
+- **server** — backend API + socket.io at http://localhost:9000
+
+To connect to a DexArm via serial port, the server container runs with `privileged: true` and `/dev` mounted. Plug in the arm and it should appear in the "Connect DexArm" port dropdown.
+
+To rebuild after changes:
+```bash
+docker compose build
+docker compose up
+```
+
+> **Note:** CuraEngine (3D print slicing) is not available — no Linux binary is included in the repo.
+
+---
+
 # Build the Rotrics Studio App from scratch
 
 ## 1. Installation and configuration
