@@ -1,0 +1,60 @@
+# Build stage
+FROM node:14-bullseye AS build
+
+RUN apt-get update && apt-get install -y git python2 make g++ default-jre-headless \
+    && ln -sf /usr/bin/python2 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# copy_files.js references ../../rotrics-scratch-blocks/media relative to web/
+# With WORKDIR /build/web, ../../ resolves to /
+RUN git clone --depth 1 https://github.com/Rotrics-Dev/rotrics-scratch-blocks.git /rotrics-scratch-blocks \
+    && git clone --depth 1 https://github.com/Rotrics-Dev/rotrics-scratch-vm.git /rotrics-scratch-vm
+
+# Build scratch-blocks (generates blockly_compressed_vertical.js etc.)
+WORKDIR /rotrics-scratch-blocks
+ENV PATH="/rotrics-scratch-blocks/node_modules/.bin:${PATH}"
+RUN npm install && python build.py && npx webpack && npm link
+
+# Install and link scratch-vm
+WORKDIR /rotrics-scratch-vm
+RUN npm install && npm link
+
+# Install web dependencies
+WORKDIR /build/web
+COPY web/package.json ./
+# Pin react-draggable to avoid optional chaining syntax unsupported by this webpack/babel config
+RUN npm install \
+    && npm install react-draggable@4.4.5 \
+    && npm link rotrics-scratch-blocks rotrics-scratch-vm
+
+# Provide electron/package.json for version imports (excluded from Docker context)
+RUN mkdir -p /build/electron
+COPY electron/package.json /build/electron/package.json
+
+# Copy web source
+COPY web/ ./
+
+# Fix case-sensitivity: source imports '../basic/Index.jsx' but file is 'index.jsx'
+RUN ln -sf index.jsx src/containers/basic/Index.jsx
+
+# Build
+RUN npm run copy_files && npm run extract_i18n && npx webpack --mode=production
+
+# Serve stage
+FROM nginx:alpine
+
+COPY --from=build /build/web/build-web /usr/share/nginx/html
+
+# SPA fallback config
+RUN printf 'server {\n\
+    listen 80;\n\
+    root /usr/share/nginx/html;\n\
+    index index.html;\n\
+    location / {\n\
+        try_files $uri $uri/ /index.html;\n\
+    }\n\
+}\n' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80

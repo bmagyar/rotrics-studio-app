@@ -1,0 +1,7 @@
+node_modules/
+build-web/
+build-server/
+.git
+electron/
+!electron/package.json
+*.log

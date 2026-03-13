@@ -1,0 +1,22 @@
+FROM node:14-bullseye
+
+RUN apt-get update && apt-get install -y \
+    python2 \
+    make \
+    g++ \
+    && ln -sf /usr/bin/python2 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/server
+
+COPY server/package.json ./
+RUN npm install
+
+COPY server/ ./
+
+# Fix case-sensitivity: code references 'config' but directory is 'Config'
+RUN ln -sf Config CuraEngine/config
+
+EXPOSE 9000
+
+CMD ["node", "index.js"]
