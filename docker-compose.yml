@@ -5,6 +5,9 @@ services:
       dockerfile: Dockerfile.server
     ports:
       - "9000:9000"
+    privileged: true
+    volumes:
+      - /dev:/dev
   web:
     build:
       context: .
