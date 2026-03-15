@@ -6,7 +6,8 @@ export const WORK_HEIGHT = {
 };
 export const WORK_HEIGHT_PLACE_HOLDER = 'WORK_HEIGHT_PLACE_HOLDER';
 const IS_TOOLTIP_DISPLAYED = "IS_TOOLTIP_DISPLAYED";
-const ADVANCE = 'ADVANCE'
+const ADVANCE = 'ADVANCE';
+const Z_PRESETS_KEY = 'Z_PRESETS';
 
 export const persistents = {
     getFloat: (key) => parseFloat(localStorage.getItem(key)),
@@ -31,6 +32,9 @@ if (persistents.get(WORK_HEIGHT.LASER) === null) {
 if (persistents.get(ADVANCE) === null) {
     persistents.set(ADVANCE, 0);
 }
+if (persistents.get(Z_PRESETS_KEY) === null) {
+    persistents.set(Z_PRESETS_KEY, JSON.stringify([]));
+}
 
 const INITIAL_STATE = {
     workHeightP3d: persistents.getFloat(WORK_HEIGHT.P3D),
@@ -38,7 +42,8 @@ const INITIAL_STATE = {
     workHeightLaser: persistents.getFloat(WORK_HEIGHT.LASER),
     isTooltipDisplayed: persistents.get(IS_TOOLTIP_DISPLAYED),
     // 高级模式
-    advance: persistents.getFloat(ADVANCE)
+    advance: persistents.getFloat(ADVANCE),
+    zPresets: JSON.parse(persistents.get(Z_PRESETS_KEY) || '[]')
 };
 
 console.log('初始状态')
@@ -52,19 +57,32 @@ export const actions = {
         };
     },
     setWorkHeightP3d: (value) => (dispatch, getState) => {
-        // const key = WORK_HEIGHT.P3D;
         dispatch(actions._updateState({workHeightP3d: value}));
-        // persistents.set(key, value);
+        persistents.set(WORK_HEIGHT.P3D, value);
     },
     setWorkHeightPen: (value) => (dispatch, getState) => {
-        // const key = WORK_HEIGHT.PEN;
         dispatch(actions._updateState({workHeightPen: value}));
-        // persistents.set(key, value);
+        persistents.set(WORK_HEIGHT.PEN, value);
     },
     setWorkHeightLaser: (value) => (dispatch, getState) => {
-        // const key = WORK_HEIGHT.LASER;
         dispatch(actions._updateState({workHeightLaser: value}));
-        // persistents.set(key, value);
+        persistents.set(WORK_HEIGHT.LASER, value);
+    },
+    saveZPreset: (label, z) => (dispatch, getState) => {
+        const presets = [...getState().persistentData.zPresets];
+        const existing = presets.findIndex(p => p.label === label);
+        if (existing >= 0) {
+            presets[existing].z = z;
+        } else {
+            presets.push({label, z});
+        }
+        dispatch(actions._updateState({zPresets: presets}));
+        persistents.set(Z_PRESETS_KEY, JSON.stringify(presets));
+    },
+    deleteZPreset: (label) => (dispatch, getState) => {
+        const presets = getState().persistentData.zPresets.filter(p => p.label !== label);
+        dispatch(actions._updateState({zPresets: presets}));
+        persistents.set(Z_PRESETS_KEY, JSON.stringify(presets));
     },
     setIsTooltipDisplayed: (value) => (dispatch) => {
         const key = IS_TOOLTIP_DISPLAYED;

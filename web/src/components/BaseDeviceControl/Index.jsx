@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './styles.css';
-import {Radio, Space, Row, Col, Modal, Form, Input, message, Menu, Dropdown, Tooltip} from 'antd';
+import {Radio, Space, Row, Col, Modal, Form, Input, Button, Select, message, Menu, Dropdown, Tooltip} from 'antd';
 import PositionMonitor from '../PositionMoniter/index.jsx'
 import Level from '../Level/Index.jsx'
 import {ConfigTitle} from "../Config";
@@ -18,7 +18,7 @@ class Index extends React.Component {
 
         // 表单控件
         formRef: React.createRef(),
-        
+
         // 是否显示自定义弹窗
         modalVisible: false,
 
@@ -32,7 +32,12 @@ class Index extends React.Component {
         customButtons: [],
 
         // 正在编辑的自定义按钮索引
-        currentCustomButtonIndex: -1
+        currentCustomButtonIndex: -1,
+
+        // Z presets
+        selectedPreset: undefined,
+        savePresetModalVisible: false,
+        newPresetLabel: '',
     };
 
     actions = {
@@ -150,6 +155,37 @@ class Index extends React.Component {
         // 点击按钮名
         onCustomButtonClick: (command) => {
             this.props.startTask(command, false)
+        },
+
+        // Z preset actions
+        goToZPreset: (label) => {
+            const preset = (this.props.zPresets || []).find(p => p.label === label);
+            if (preset) {
+                this.props.startTask(`G0 Z${preset.z}\n`, false);
+            }
+        },
+        saveCurrentZ: () => {
+            this.setState({savePresetModalVisible: true, newPresetLabel: ''});
+        },
+        confirmSavePreset: () => {
+            const label = this.state.newPresetLabel.trim();
+            if (!label) return;
+            this.props.serialPortWrite('G92.1\n');
+            this.props.addOneShootGcodeResponseListener(
+                'M114', (x, y, z) => {
+                    this.props.saveZPreset(label, z);
+                    this.props.serialPortWrite('G92 Z0\n');
+                }
+            );
+            this.props.serialPortWrite('M114\n');
+            this.setState({savePresetModalVisible: false, selectedPreset: label});
+        },
+        deleteSelectedPreset: () => {
+            const {selectedPreset} = this.state;
+            if (selectedPreset) {
+                this.props.deleteZPreset(selectedPreset);
+                this.setState({selectedPreset: undefined});
+            }
         },
 
         // 删除自定义按钮
@@ -347,6 +383,51 @@ class Index extends React.Component {
                         <Radio.Button value={0.1} className={styles.btn_step}>0.1</Radio.Button>
                     </Radio.Group>
                 </div>
+                <div style={{marginTop: 8}}>
+                    <ConfigTitle text={t("Z Presets")}/>
+                    <Row gutter={[4, 4]}>
+                        <Col span={16}>
+                            <Select
+                                style={{width: '100%'}}
+                                placeholder={t("Select preset")}
+                                value={this.state.selectedPreset}
+                                onChange={(value) => this.setState({selectedPreset: value})}
+                                size="small"
+                            >
+                                {(this.props.zPresets || []).map(p => (
+                                    <Select.Option key={p.label} value={p.label}>
+                                        {p.label} (Z{p.z})
+                                    </Select.Option>
+                                ))}
+                            </Select>
+                        </Col>
+                        <Col span={8}>
+                            <Button size="small" style={{width: '100%'}} onClick={() => this.actions.goToZPreset(this.state.selectedPreset)} disabled={!this.state.selectedPreset}>{t("Go")}</Button>
+                        </Col>
+                    </Row>
+                    <Row gutter={[4, 4]} style={{marginTop: 4}}>
+                        <Col span={12}>
+                            <Button size="small" style={{width: '100%'}} onClick={this.actions.saveCurrentZ}>{t("Save Current Z")}</Button>
+                        </Col>
+                        <Col span={12}>
+                            <Button size="small" style={{width: '100%'}} onClick={this.actions.deleteSelectedPreset} disabled={!this.state.selectedPreset}>{t("Delete Preset")}</Button>
+                        </Col>
+                    </Row>
+                </div>
+                <Modal
+                    title={t("Save Z Preset")}
+                    visible={this.state.savePresetModalVisible}
+                    onOk={this.actions.confirmSavePreset}
+                    onCancel={() => this.setState({savePresetModalVisible: false})}
+                    okButtonProps={{disabled: !this.state.newPresetLabel.trim()}}
+                >
+                    <Input
+                        placeholder={t("Preset label (e.g. Laser 3mm plywood)")}
+                        value={this.state.newPresetLabel}
+                        onChange={(e) => this.setState({newPresetLabel: e.target.value})}
+                        onPressEnter={this.actions.confirmSavePreset}
+                    />
+                </Modal>
                 {/* 自定义按钮弹窗 */}
                 {modalVisible && <Modal 
                     title={t("Custom Button")}

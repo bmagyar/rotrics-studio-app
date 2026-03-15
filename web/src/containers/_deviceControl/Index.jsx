@@ -122,8 +122,8 @@ class Index extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-    const {workHeightP3d, workHeightPen, workHeightLaser} = state.persistentData;
-    return {workHeightP3d, workHeightPen, workHeightLaser};
+    const {workHeightP3d, workHeightPen, workHeightLaser, zPresets} = state.persistentData;
+    return {workHeightP3d, workHeightPen, workHeightLaser, zPresets};
 };
 
 const mapDispatchToProps = (dispatch) => {
@@ -132,6 +132,8 @@ const mapDispatchToProps = (dispatch) => {
         setWorkHeightP3d: (value) => dispatch(persistentDataActions.setWorkHeightP3d(value)),
         setWorkHeightPen: (value) => dispatch(persistentDataActions.setWorkHeightPen(value)),
         setWorkHeightLaser: (value) => dispatch(persistentDataActions.setWorkHeightLaser(value)),
+        saveZPreset: (label, z) => dispatch(persistentDataActions.saveZPreset(label, z)),
+        deleteZPreset: (label) => dispatch(persistentDataActions.deleteZPreset(label)),
         addOneShootGcodeResponseListener: (gcode, listener) => dispatch(serialPortAction.addOneShootGcodeResponseListener(gcode, listener)),
         serialPortWrite: (gcode) => dispatch(serialPortAction.write(gcode))
     };
