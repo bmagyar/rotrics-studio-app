@@ -3,6 +3,7 @@ import ReactGA from 'react-ga';
 import {actions as serialPortActions} from './serialPort';
 import {
     FIRMWARE_UPGRADE_START,
+    FIRMWARE_UPGRADE_LOCAL_START,
     SERIAL_PORT_OPEN,
     FIRMWARE_UPGRADE_STEP_CHANGE,
     SERIAL_PORT_DATA,
@@ -99,6 +100,9 @@ export const actions = {
         const {isInBootLoader} = getState().settingsGeneral;
         socketClientManager.emitToServer(FIRMWARE_UPGRADE_START, {isInBootLoader});
         dispatch(actions._updateState({bootLoaderModalVisible: false}));
+    },
+    startLocal: (firmwarePath) => (dispatch) => {
+        socketClientManager.emitToServer(FIRMWARE_UPGRADE_LOCAL_START, {firmwarePath});
     },
     closeBootLoaderModal: () => (dispatch) => {
         dispatch(actions._updateState({bootLoaderModalVisible: false}));

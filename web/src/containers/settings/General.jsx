@@ -48,6 +48,30 @@ class General extends React.Component {
                 firmwareUpgradeModalVisible: true,
             });
         },
+        uploadLocalFirmware: () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.bin';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                    const response = await fetch(`${window.serverAddress}/uploadFirmware`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const {filePath} = await response.json();
+                    this.props.resetFirmwareUpgrade();
+                    this.props.startLocalFirmwareUpgrade(filePath);
+                    this.setState({firmwareUpgradeModalVisible: true});
+                } catch (err) {
+                    console.error('Failed to upload firmware:', err);
+                }
+            };
+            input.click();
+        },
     };
 
     render() {
@@ -97,6 +121,13 @@ class General extends React.Component {
                                     onClick={actions.startFirmwareUpgrade}
                                 >
                                     {t("check update")}
+                                </Button>
+                                <Button
+                                    type="link"
+                                    size="small"
+                                    onClick={actions.uploadLocalFirmware}
+                                >
+                                    {t("upload firmware")}
                                 </Button></Col>
                             <Col span={12}>{firmwareVersion}</Col>
                         </Row>
@@ -111,7 +142,7 @@ class General extends React.Component {
                     <div className={styles.div_info}>
                         <Row gutter={[0, verticalSpace]}>
                             <Col span={spanCol1}>{t("Version")}</Col>
-                            <Col span={12}>{`V${packageJson.version}`}</Col>
+                            <Col span={12}>{`V${packageJson.version}-Bences-fork`}</Col>
                         </Row>
                         <Row>
                             <Col span={spanCol1}>{t("Language")}</Col>
@@ -189,6 +220,7 @@ const mapDispatchToProps = (dispatch) => {
     return {
         closeBootLoaderModal: () => dispatch(settingsGeneralActions.closeBootLoaderModal()),
         startFirmwareUpgrade: () => dispatch(settingsGeneralActions.start()),
+        startLocalFirmwareUpgrade: (firmwarePath) => dispatch(settingsGeneralActions.startLocal(firmwarePath)),
         resetFirmwareUpgrade: () => dispatch(settingsGeneralActions.reset()),
     };
 };

@@ -42,6 +42,7 @@ import {
     P3D_SLICE_START,
     P3D_SLICE_STATUS,
     FIRMWARE_UPGRADE_START,
+    FIRMWARE_UPGRADE_LOCAL_START,
     FIRMWARE_UPGRADE_STEP_CHANGE,
     FRONT_END_POSITION_MONITOR,
     CODE_PROJECT_EXTENSION,
@@ -126,6 +127,12 @@ const getBaseFilename = (filePath) => {
 
 const setupHttpServer = () => {
     //file: {"size":684,"path":"/var/folders/r6/w_gtq1gd0rbg6d6ry_h8t6wc0000gn/T/upload_bac2aa9af7e18da65c7535e1d44f4250","name":"cube_bin.stl","type":"application/octet-stream","mtime":"2020-04-17T04:21:17.843Z"}
+    router.post('/uploadFirmware', (ctx) => {
+        const file = ctx.request.files.file;
+        const {filePath} = saveFileToCacheDir(file);
+        console.log("upload firmware ok: " + file.name + " -> " + filePath);
+        return ctx.body = {filePath, filename: file.name};
+    });
     router.post('/uploadFile', (ctx) => {
         const file = ctx.request.files.file;
         const {url} = saveFileToCacheDir(file);
@@ -450,6 +457,13 @@ const setupSocket = () => {
             socket.on(FIRMWARE_UPGRADE_START, (data) => {
                 const {isInBootLoader} = data;
                 firmwareUpgradeManager.start(CACHE_DIR, isInBootLoader, (current, status, description) => {
+                    socket.emit(FIRMWARE_UPGRADE_STEP_CHANGE, {current, status, description});
+                })
+            });
+
+            socket.on(FIRMWARE_UPGRADE_LOCAL_START, (data) => {
+                const {firmwarePath} = data;
+                firmwareUpgradeManager.startLocal(firmwarePath, (current, status, description) => {
                     socket.emit(FIRMWARE_UPGRADE_STEP_CHANGE, {current, status, description});
                 })
             });

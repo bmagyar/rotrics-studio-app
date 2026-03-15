@@ -113,6 +113,90 @@ class FirmwareUpgradeManager {
      * status: 和antd step保持一致 https://ant.design/components/steps-cn/
      * @returns {Promise<void>}
      */
+    async startLocal(firmwarePath, onChange) {
+        this.onChange = onChange;
+        this.serialPort = serialPortManager.serialPort;
+        this.path = serialPortManager.getOpened();
+        this.frames = [];
+        this.frameCount = 0;
+        this.curFrame = null;
+        this.cCount = 0;
+
+        // step-0: Check
+        this.onChange(0, 'process');
+        if (!this.path) {
+            this.onChange(0, 'error', 'Connect DexArm first');
+            return;
+        }
+        if (gcodeSender.curStatus !== "idle") {
+            this.onChange(0, 'error', 'Stop g-code sending task first');
+            return;
+        }
+        if (!fs.existsSync(firmwarePath)) {
+            this.onChange(0, 'error', 'Firmware file not found');
+            return;
+        }
+
+        const filename = path.basename(firmwarePath);
+
+        // skip steps 1-3 (info collection, version check, download)
+        this.onChange(1, 'finish');
+        this.onChange(2, 'finish');
+        this.onChange(3, 'finish', filename);
+
+        this.frames = this.prepareData(firmwarePath, filename);
+        this.frameCount = this.frames.length;
+        if (this.frameCount === 0) {
+            this.onChange(3, 'error', 'Data is empty');
+            return;
+        }
+
+        this.serialPort.removeAllListeners();
+        this.readLineParser = this.serialPort.pipe(new ReadLineParser({delimiter: '\n'}));
+
+        // step-4: Enter boot loader
+        this.onChange(4, 'process');
+        if (!await this.enterBootLoader()) {
+            this.onChange(4, 'error', "Enter boot loader failed, please retry");
+            return;
+        }
+
+        await sleep(3000);
+
+        // step-5: Connect DexArm
+        this.onChange(5, 'process');
+        const {err: err4openSerialPort} = await this.openSerialPort();
+        if (err4openSerialPort) {
+            this.onChange(5, 'error', "Connect DexArm failed, please retry. Error message: " + err4openSerialPort);
+            return;
+        }
+
+        this.serialPort.removeAllListeners();
+        this.readLineParser = this.serialPort.pipe(new ReadLineParser({delimiter: '\n'}));
+
+        // step-6: Load firmware
+        this.onChange(6, 'process');
+        this.serialPort.on("data", this.onReceiveData);
+        this.readLineParser.on('data', this.onReceiveLine);
+
+        await sleep(2000);
+        this.write("1");
+
+        await sleep(7000);
+        if (this.cCount === 0) {
+            this.write("1");
+        }
+
+        await sleep(12000);
+        if (this.cCount === 0) {
+            this.write("1");
+        }
+
+        if (this.cCount < 2) {
+            this.onChange(6, 'error', "Download firmware to flash failed, please retry");
+        }
+    }
+
     async start(cache_dir, isInBootLoader, onChange) {
         this.cache_dir = cache_dir;
         this.onChange = onChange;
