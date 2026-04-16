@@ -5,6 +5,9 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     udev \
+    libnss-mdns \
+    avahi-daemon \
+    dbus \
     && ln -sf /usr/bin/python2 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
@@ -18,6 +21,9 @@ COPY server/ ./
 # Fix case-sensitivity: code references 'config' but directory is 'Config'
 RUN ln -sf Config CuraEngine/config
 
+COPY docker-entrypoint-server.sh /usr/local/bin/docker-entrypoint-server.sh
+
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-server.sh"]
 CMD ["node", "index.js"]

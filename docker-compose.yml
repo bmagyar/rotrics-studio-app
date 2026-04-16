@@ -3,8 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
-    ports:
-      - "9000:9000"
+    network_mode: host
     privileged: true
     volumes:
       - /dev:/dev
