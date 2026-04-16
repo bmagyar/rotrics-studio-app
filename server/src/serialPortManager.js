@@ -1,6 +1,5 @@
 import EventEmitter from 'events';
 import SerialPort from 'serialport';
-import ReadLineParser from '@serialport/parser-readline';
 import {
     SERIAL_PORT_PATH_UPDATE,
     SERIAL_PORT_GET_OPENED,
@@ -10,173 +9,142 @@ import {
     SERIAL_PORT_WRITE_ERROR,
     SERIAL_PORT_WRITE_OK,
     SERIAL_PORT_DATA,
-} from "./constants.js"
-import {utf8bytes2string} from './utils/index.js';
-// import gcodeSender from './gcode/gcodeSender.js';
+} from "./constants.js";
+import { utf8bytes2string } from './utils/index.js';
+import { createTransport, isNetworkPath } from './transports/index.js';
 
-const baudRate = 115200; // 9600;
-//TODO: 打开新的串口，应该remove前一个串口的listener；等出bug时候再说
 class SerialPortManager extends EventEmitter {
     constructor() {
         super();
-        this.serialPort = null;
+        this.transport = null;
         this.readLineParser = null;
+
         setInterval(() => {
-            //定期返回paths
             SerialPort.list().then(
                 (ports) => {
-                    const paths = ports.map(item => {
-                        return item.path;
-                    });
+                    const paths = ports.map((item) => item.path);
                     this.emit(SERIAL_PORT_PATH_UPDATE, paths);
 
-                    //serial port open后，被拔掉
-                    if (this.serialPort && this.serialPort.isOpen && !paths.includes(this.serialPort.path)) {
-                        console.log("serial port -> close: opened port is pulled out: " + this.serialPort.path);
-                        this.emit(SERIAL_PORT_CLOSE, this.serialPort.path);
-                        this.serialPort = null;
+                    const current = this.transport && this.transport.getPath();
+                    if (
+                        current &&
+                        !isNetworkPath(current) &&
+                        this.transport.isOpen &&
+                        !paths.includes(current)
+                    ) {
+                        console.log('serial port -> close: opened port is pulled out: ' + current);
+                        this.emit(SERIAL_PORT_CLOSE, current);
+                        this.transport = null;
+                        this.readLineParser = null;
                     }
                 },
                 (error) => {
                     this.emit(SERIAL_PORT_ERROR, error);
                 }
-            )
-        }, 500)
+            );
+        }, 500);
     }
 
     getOpened() {
-        if (this.serialPort && this.serialPort.isOpen) {
-            return this.serialPort.path;
-        } else {
-            return null;
+        if (this.transport && this.transport.isOpen) {
+            return this.transport.getPath();
         }
+        return null;
     }
 
     _openNew(path) {
-        this.serialPort = new SerialPort(path, {baudRate, autoOpen: false});
+        let transport;
+        try {
+            transport = createTransport(path);
+        } catch (err) {
+            this.emit(SERIAL_PORT_ERROR, err);
+            return;
+        }
+        this.transport = transport;
+        this.readLineParser = transport.readLineParser;
 
-        //data: 类型是buffer的数组
-        //将buffer转为string，发送到前端
-        this.serialPort.on("data", (buffer) => {
+        transport.on('data', (buffer) => {
             if (Buffer.isBuffer(buffer)) {
                 const arr = [];
-                for (let i = 0; i < buffer.length; i++) {
-                    arr.push(buffer[i]);
-                }
-                const received = utf8bytes2string(arr);
-                // console.log("received raw: " + received);
-            } else {
-                console.log("received data is not buffer: " + JSON.stringify(buffer))
+                for (let i = 0; i < buffer.length; i++) arr.push(buffer[i]);
+                utf8bytes2string(arr);
             }
         });
 
-        this.readLineParser = this.serialPort.pipe(new ReadLineParser({delimiter: '\n'}));
-        this.readLineParser.on('data', (data) => {
-            // console.log("--------------------------------- ");
-            // console.log("received line: " + data.trim());
-            this.emit(SERIAL_PORT_DATA, {received: data.trim()});
+        transport.readLineParser.on('data', (line) => {
+            this.emit(SERIAL_PORT_DATA, { received: String(line).trim() });
         });
 
-        this.serialPort.on("open", () => {
-            console.log("serial port -> open: " + this.serialPort.path);
-            this.emit(SERIAL_PORT_OPEN, this.serialPort.path);
+        transport.on('open', (p) => {
+            console.log('serial port -> open: ' + p);
+            this.emit(SERIAL_PORT_OPEN, p);
         });
 
-        this.serialPort.on("close", () => {
-            console.log("serial port -> close: " + this.serialPort.path);
-            this.emit(SERIAL_PORT_CLOSE, this.serialPort.path);
-            this.serialPort = null;
+        transport.on('close', (p) => {
+            console.log('serial port -> close: ' + p);
+            this.emit(SERIAL_PORT_CLOSE, p);
+            this.transport = null;
+            this.readLineParser = null;
         });
 
-        this.serialPort.on("error", () => {
-            console.log("serial port -> error: " + this.serialPort.path);
-            this.emit(SERIAL_PORT_ERROR);
-            this.serialPort = null;
+        transport.on('error', (err) => {
+            console.log('serial port -> error: ' + (transport.getPath() || ''));
+            this.emit(SERIAL_PORT_ERROR, err);
+            this.transport = null;
+            this.readLineParser = null;
         });
 
-        this.serialPort.open((error) => {
+        transport.open((error) => {
             if (error) {
-                this.serialPort = null;
+                this.transport = null;
+                this.readLineParser = null;
                 this.emit(SERIAL_PORT_ERROR, error);
             }
-        })
+        });
     }
 
-    /**
-     * 5种情况
-     * serialPort===null: [case-1]，开一个新的
-     *
-     *                           |--path相同 [case-2]，提示已经打开
-     *                     --open
-     *                     |     |--path不同 [case-3]，关闭之前的，打开新的
-     * serialPort!==null --
-     *                     |         |--path相同 [case-4]，开一个新的
-     *                     --not open
-     *                               |--path不同 [case-5]，之前的不用管，开一个新的
-     * @param path
-     */
     open(path) {
-        //case-1
-        if (!this.serialPort) {
+        if (!this.transport) {
             this._openNew(path);
             return;
         }
-
-        //case-2
-        if (this.serialPort.isOpen && this.serialPort.path === path) {
-            console.log("The port " + path + " has been opened");
-            this.emit(SERIAL_PORT_OPEN, this.serialPort.path);
+        const current = this.transport.getPath();
+        if (this.transport.isOpen && current === path) {
+            console.log('The port ' + path + ' has been opened');
+            this.emit(SERIAL_PORT_OPEN, current);
             return;
         }
-
-        //case-3
-        if (this.serialPort.isOpen && this.serialPort.path !== path) {
+        if (this.transport.isOpen && current !== path) {
             this.close();
             this._openNew(path);
             return;
         }
-
-        //case-4
-        if (!this.serialPort.isOpen && this.serialPort.path === path) {
-            this._openNew(path);
-            return;
-        }
-
-        //case-5
-        if (!this.serialPort.isOpen && this.serialPort.path !== path) {
-            this._openNew(path);
-            return;
-        }
+        this._openNew(path);
     }
 
     close() {
-        if (this.serialPort && this.serialPort.isOpen) {
-            this.serialPort.close((error) => {
-                if (error) {
-                    this.emit(SERIAL_PORT_ERROR, error);
-                }
+        if (this.transport && this.transport.isOpen) {
+            this.transport.close((error) => {
+                if (error) this.emit(SERIAL_PORT_ERROR, error);
             });
         }
     }
 
-    //data: string|Buffer|Array<number>
     write(data) {
-        if (this.serialPort && this.serialPort.isOpen) {
-            this.serialPort.write(data, (error) => {
+        if (this.transport && this.transport.isOpen) {
+            this.transport.write(data, (error) => {
                 if (error) {
-                    console.error("write error: " + data);
+                    console.error('write error: ' + data);
                     this.emit(SERIAL_PORT_ERROR, error);
                 } else {
                     this.emit(SERIAL_PORT_WRITE_OK, data);
-                    // console.log("write ok: " + data);
                 }
             });
         } else {
-            console.warn("Port is closed");
+            console.warn('Port is closed');
         }
     }
 }
 
 const serialPortManager = new SerialPortManager();
-
 export default serialPortManager;
