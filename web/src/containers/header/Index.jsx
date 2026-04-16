@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import styles from './styles.css';
-import {Button, Modal, Select, Space, Switch} from 'antd';
+import {Button, Input, Modal, Select, Space, Switch} from 'antd';
 import notificationI18n from "../../utils/notificationI18n";
 import {connect} from 'react-redux';
 import {actions as serialPortActions} from '../../reducers/serialPort';
@@ -21,6 +21,7 @@ class Index extends React.Component {
     state = {
         serialPortModalVisible: false,
         selectedPath: undefined, //当前选中的serial port path; 使用undefined而不是null，是因为undefined情况下，Select才会显示placeholder
+        networkUrl: '',
     };
 
     componentWillReceiveProps(nextProps) {
@@ -68,13 +69,28 @@ class Index extends React.Component {
             });
         },
         openSerialPort: () => {
-            this.props.openSerialPort(this.state.selectedPath)
+            const url = (this.state.networkUrl || '').trim();
+            if (url) {
+                if (!/^tcp:\/\/[^:/]+:\d+$/i.test(url)) {
+                    notificationI18n.error({
+                        message: 'Invalid URL',
+                        description: 'Use tcp://host:port — e.g. tcp://pi.local:2000',
+                    });
+                    return;
+                }
+                this.props.openSerialPort(url);
+            } else {
+                this.props.openSerialPort(this.state.selectedPath);
+            }
         },
         closeSerialPort: () => {
             this.props.closeSerialPort()
         },
         selectPath: (selectedPath) => {
             this.setState({selectedPath})
+        },
+        setNetworkUrl: (e) => {
+            this.setState({networkUrl: e.target.value});
         },
         emergencyStop: () => {
             this.props.startTask('M410\n');
@@ -103,28 +119,26 @@ class Index extends React.Component {
         const {paths, path, terminalVisible, jogPanelVisible} = this.props;
         const {selectedPath} = state;
         const {t} = this.props;
+        const urlTrim = (state.networkUrl || '').trim();
+        const urlSelected = urlTrim.length > 0;
+        const effectivePath = urlSelected ? urlTrim : selectedPath;
+
         let statusDes = "";
-        if (selectedPath) {
-            if (path === selectedPath) {
-                statusDes = "Connected"
-            } else {
-                statusDes = "Disconnected"
-            }
+        if (effectivePath) {
+            statusDes = effectivePath === path ? "Connected" : "Disconnected";
         }
 
         let connectDisabled = false;
         let disconnectDisabled = false;
-        if (!selectedPath) {
+        if (!effectivePath) {
             connectDisabled = true;
             disconnectDisabled = true;
+        } else if (effectivePath === path) {
+            connectDisabled = true;
+            disconnectDisabled = false;
         } else {
-            if (selectedPath === path) {
-                connectDisabled = true;
-                disconnectDisabled = false;
-            } else {
-                connectDisabled = false;
-                disconnectDisabled = true;
-            }
+            connectDisabled = false;
+            disconnectDisabled = true;
         }
 
         const options = [];
@@ -205,14 +219,24 @@ class Index extends React.Component {
                         </Button>,
                     ]}
                 >
-                    <Space direction={"vertical"}>
+                    <Space direction={"vertical"} style={{width: '100%'}}>
                         <h4>{`${t('Status')}: ${t(statusDes)}`}</h4>
                         <Select
                             style={{width: 300}}
                             value={selectedPath}
                             onChange={actions.selectPath}
                             placeholder={t("Choose a port")}
+                            disabled={urlSelected}
                             options={options}/>
+                        <div style={{paddingTop: 8}}>
+                            <span>{t('or network URL')}: </span>
+                            <Input
+                                style={{width: 300}}
+                                value={state.networkUrl}
+                                onChange={actions.setNetworkUrl}
+                                placeholder="tcp://pi.local:2000"
+                                allowClear/>
+                        </div>
                     </Space>
                 </Modal>
             </div>
