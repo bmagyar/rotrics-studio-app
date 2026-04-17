@@ -7,6 +7,7 @@ services:
     privileged: true
     volumes:
       - /dev:/dev
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
   web:
     build:
       context: .
