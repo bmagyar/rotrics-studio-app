@@ -56,32 +56,43 @@ If `minicom` works, the OS sees the arm correctly and the rest is just plumbing.
 
 ## 2. Install a stable device name with udev
 
-The kernel-assigned name (`ttyACM0`) can change if you have other USB-CDC devices or unplug/replug. Pin a stable symlink:
+The kernel-assigned name (`ttyACM0`) can change if you have other USB-CDC devices or unplug/replug. Pin a stable symlink.
+
+**Important:** the udev rule **must be a single line**. If it ends up split across multiple lines, the second line will have no `SUBSYSTEM` filter and will match the USB device instead of the tty — your symlink will point at something like `bus/usb/001/004`, which ser2net can't use. Copy-pasting heredocs into some terminals silently breaks this, so use the one-liner form below:
 
 ```bash
-sudo tee /etc/udev/rules.d/99-dexarm.rules >/dev/null <<EOF
-SUBSYSTEM=="tty", ATTRS{idVendor}=="<vid>", ATTRS{idProduct}=="<pid>", SYMLINK+="dexarm", MODE="0660", GROUP="dialout"
-EOF
-sudo udevadm control --reload-rules
-sudo udevadm trigger --action=add --subsystem-match=tty
-ls -l /dev/dexarm
+echo 'SUBSYSTEM=="tty", ATTRS{idVendor}=="<vid>", ATTRS{idProduct}=="<pid>", SYMLINK+="dexarm", MODE="0660", GROUP="dialout"' | sudo tee /etc/udev/rules.d/99-dexarm.rules
 ```
 
-Replace `<vid>` and `<pid>` with the values from `dmesg`. After the trigger, `/dev/dexarm` should symlink to the actual device. If you ever want to pin a *specific* arm (in case you have multiples), add `ATTRS{serial}=="<serial-number>"` to the rule.
+Replace `<vid>` and `<pid>` with the values from `dmesg`. Then reload and verify:
+
+```bash
+sudo udevadm control --reload-rules && sudo udevadm trigger --action=add --subsystem-match=tty && ls -l /dev/dexarm
+```
+
+Expect `/dev/dexarm -> ttyACM0` (or similar). If it points into `bus/usb/…`, the rule got split — open `/etc/udev/rules.d/99-dexarm.rules` and confirm it's one line.
+
+If you want to pin a *specific* arm (in case you have multiples), add `ATTRS{serial}=="<serial-number>"` inside the quotes, before `SYMLINK+=`.
 
 ---
 
 ## 3. Install and configure ser2net
 
 ```bash
-sudo apt update
-sudo apt install -y ser2net
+sudo apt update && sudo apt install -y ser2net
 ```
 
-Replace `/etc/ser2net.yaml` with a minimal config — the Debian package ships a sample with several entries on port 2000 bound to localhost, which conflict with your real configuration:
+Replace `/etc/ser2net.yaml` with a minimal config — the Debian package ships a sample with several entries on port 2000 bound to localhost, which conflict with your real configuration.
+
+The easiest paste-safe way is to edit the file directly:
 
 ```bash
-sudo tee /etc/ser2net.yaml >/dev/null <<'EOF'
+sudo nano /etc/ser2net.yaml
+```
+
+Delete everything in the file and paste this block, then save with `Ctrl-O`, `Enter`, `Ctrl-X`:
+
+```yaml
 %YAML 1.1
 ---
 connection: &dexarm
@@ -91,7 +102,6 @@ connection: &dexarm
     options:
         max-connections: 1
         kickolduser: true
-EOF
 ```
 
 What the options mean:
@@ -170,6 +180,14 @@ ser2net isn't running, isn't bound to a network-reachable interface, or a firewa
 ### `nc` connects but no `wait` and no response to commands
 
 `/dev/dexarm` doesn't exist or isn't the arm. Re-check the udev rule, run `ls -l /dev/dexarm`, and confirm `dmesg | grep ttyACM` matches what the symlink points at. Also confirm power to the arm.
+
+### `/dev/dexarm` is a symlink to `bus/usb/NNN/NNN` instead of `ttyACM0`
+
+The udev rule got split across multiple lines at install time (often happens when pasting a heredoc into a terminal that mangles it). The second half of a split rule has no `SUBSYSTEM` filter and matches the USB device event instead of the tty event, producing this exact symptom. Fix with the one-liner form from step 2 above, then `sudo udevadm control --reload-rules && sudo udevadm trigger --action=add --subsystem-match=tty`.
+
+### ser2net can't re-open the serial device after an arm power cycle
+
+ser2net doesn't automatically re-open a stale fd when the USB device goes away and comes back. `sudo systemctl restart ser2net` fixes it in the moment. For a permanent fix, Marlin devices are usually fine to leave powered; if you must power-cycle them, a small systemd path unit watching `/dev/dexarm` is the robust option.
 
 ### App says "connection refused" / "host not found" but `nc` works fine
 
