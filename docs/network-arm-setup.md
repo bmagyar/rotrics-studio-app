@@ -58,21 +58,44 @@ If `minicom` works, the OS sees the arm correctly and the rest is just plumbing.
 
 The kernel-assigned name (`ttyACM0`) can change if you have other USB-CDC devices or unplug/replug. Pin a stable symlink.
 
-**Important:** the udev rule **must be a single line**. If it ends up split across multiple lines, the second line will have no `SUBSYSTEM` filter and will match the USB device instead of the tty — your symlink will point at something like `bus/usb/001/004`, which ser2net can't use. Copy-pasting heredocs into some terminals silently breaks this, so use the one-liner form below:
+**Critical:** the udev rule must parse as a **single logical line**. If it gets split across multiple physical lines without `\` continuations, the second half will have no `SUBSYSTEM` filter, will match the USB device event instead of the tty event, and your symlink will end up pointing at something like `bus/usb/001/004` — which ser2net can't open. Terminals that wrap long pastes trigger this silently.
+
+The most paste-safe approach is to edit the file in an editor and use udev's backslash continuations (each line short enough to survive any paste):
+
+```bash
+sudo nano /etc/udev/rules.d/99-dexarm.rules
+```
+
+Clear the file and paste:
+
+```
+SUBSYSTEM=="tty", \
+ATTRS{idVendor}=="<vid>", \
+ATTRS{idProduct}=="<pid>", \
+SYMLINK+="dexarm", \
+MODE="0660", \
+GROUP="dialout"
+```
+
+Replace `<vid>` and `<pid>` with the values from `dmesg`. Save with `Ctrl-O`, `Enter`, `Ctrl-X`. udev joins backslash-terminated lines into one rule at parse time.
+
+If your terminal handles long lines cleanly, the equivalent one-liner also works:
 
 ```bash
 echo 'SUBSYSTEM=="tty", ATTRS{idVendor}=="<vid>", ATTRS{idProduct}=="<pid>", SYMLINK+="dexarm", MODE="0660", GROUP="dialout"' | sudo tee /etc/udev/rules.d/99-dexarm.rules
 ```
 
-Replace `<vid>` and `<pid>` with the values from `dmesg`. Then reload and verify:
+Either way, reload and verify:
 
 ```bash
-sudo udevadm control --reload-rules && sudo udevadm trigger --action=add --subsystem-match=tty && ls -l /dev/dexarm
+sudo rm -f /dev/dexarm
+sudo udevadm control --reload-rules && sudo udevadm trigger
+ls -l /dev/dexarm
 ```
 
-Expect `/dev/dexarm -> ttyACM0` (or similar). If it points into `bus/usb/…`, the rule got split — open `/etc/udev/rules.d/99-dexarm.rules` and confirm it's one line.
+Expect `/dev/dexarm -> ttyACM0`. If it points into `bus/usb/…`, open the rule file and check for unintended line breaks without `\` at the end.
 
-If you want to pin a *specific* arm (in case you have multiples), add `ATTRS{serial}=="<serial-number>"` inside the quotes, before `SYMLINK+=`.
+To pin a *specific* arm (useful if you have multiples), add `ATTRS{serial}=="<serial-number>"` to the rule.
 
 ---
 
