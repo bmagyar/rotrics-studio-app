@@ -117,8 +117,10 @@ export const actions = {
             dispatch(tapsActions.setTerminalVisible(false))
             dispatch(actions._updateState({path: null}));
         });
-        socketClientManager.addServerListener(SERIAL_PORT_ERROR, () => {
-            console.error("serial port -> err");
+        socketClientManager.addServerListener(SERIAL_PORT_ERROR, (err) => {
+            const msg = (err && err.message) || 'Serial port error';
+            console.error("serial port -> err", err);
+            messageI18n.error(msg);
             dispatch(actions._updateState({path: null}));
         });
         socketClientManager.addServerListener(SERIAL_PORT_DATA, (data) => {

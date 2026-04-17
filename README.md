@@ -20,6 +20,12 @@ docker compose up
 
 > **Note:** CuraEngine (3D print slicing) is not available — no Linux binary is included in the repo.
 
+## Connecting a DexArm over the network
+
+Instead of plugging the arm into the workstation directly, you can put it on a Raspberry Pi (or any small Linux box) running `ser2net` and connect to it over TCP from the app. Useful when the arm lives elsewhere or you want multiple machines to reach it.
+
+See [`docs/network-arm-setup.md`](docs/network-arm-setup.md) for the full Pi-side setup. From the app, just enter `tcp://<host>:2000` in the Connect DexArm dialog's network URL field.
+
 ---
 
 # Build the Rotrics Studio App from scratch

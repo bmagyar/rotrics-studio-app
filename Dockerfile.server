@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     udev \
+    libnss-mdns \
     && ln -sf /usr/bin/python2 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
