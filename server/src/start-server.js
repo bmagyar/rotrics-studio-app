@@ -359,7 +359,10 @@ const setupSocket = () => {
                 socket.emit(SERIAL_PORT_CLOSE, path);
             });
             serialPortManager.on(SERIAL_PORT_ERROR, (error) => {
-                socket.emit(SERIAL_PORT_ERROR, error);
+                socket.emit(SERIAL_PORT_ERROR, {
+                    message: (error && error.message) || String(error),
+                    code: error && error.code,
+                });
             });
             serialPortManager.on(SERIAL_PORT_DATA, (data) => {
                 socket.emit(SERIAL_PORT_DATA, data);

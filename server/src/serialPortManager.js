@@ -88,7 +88,7 @@ class SerialPortManager extends EventEmitter {
         });
 
         transport.on('error', (err) => {
-            console.log('serial port -> error: ' + (transport.getPath() || ''));
+            console.log('serial port -> error: ' + (transport.getPath() || '') + ' (' + (err && err.message ? err.message : err) + ')');
             this.emit(SERIAL_PORT_ERROR, err);
             this.transport = null;
             this.readLineParser = null;
@@ -96,6 +96,7 @@ class SerialPortManager extends EventEmitter {
 
         transport.open((error) => {
             if (error) {
+                console.log('serial port -> open failed: ' + path + ' (' + (error.message || error) + ')');
                 this.transport = null;
                 this.readLineParser = null;
                 this.emit(SERIAL_PORT_ERROR, error);
