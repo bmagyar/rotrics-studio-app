@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import _ from 'lodash';
 
+import settingsBw from "./settings/bw.json";
 import settingsSvg from "./settings/svg.json";
 import config_text from "./settings/config_text.json";
 
@@ -37,6 +38,9 @@ const getSettingSvg = () => {
 const getSizeRestriction = (fileType) => {
     let settings = null;
     switch (fileType) {
+        case "bw":
+            settings = settingsBw;
+            break;
         case "svg":
         case "text":
             settings = getSettingSvg() // settingsSvg;
@@ -82,6 +86,9 @@ class Model2D extends THREE.Group {
         this.inWorkArea = true;
         //需要deep clone
         switch (this.fileType) {
+            case "bw":
+                this.settings = _.cloneDeep(settingsBw);
+                break;
             case "svg":
             case "text":
                 this.settings = getSettingSvg() //  _.cloneDeep(settingsSvg);
