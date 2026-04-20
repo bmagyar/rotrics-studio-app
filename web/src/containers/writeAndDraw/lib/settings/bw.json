@@ -150,6 +150,10 @@
         "unit": "mm/min",
         "minimum_value": 10,
         "maximum_value": 4000
+      },
+      "power": {
+        "placeholder": "#power#",
+        "default_value": 0
       }
     }
   }
