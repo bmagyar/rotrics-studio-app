@@ -76,7 +76,7 @@ const actions = {
     },
     addModel: (fileType, file) => async (dispatch, getState) => {
         // 选择示例
-        if (!["svg", "text"].includes(fileType)) {
+        if (!["bw", "svg", "text"].includes(fileType)) {
             return {type: null};
         }
 

@@ -5,6 +5,7 @@ import styles from './styles.css';
 import {Button, Space, List} from 'antd';
 import messageI18n from "../../../../utils/messageI18n";
 import Transformation from './Transformation.jsx';
+import ConfigBW from './ConfigBW.jsx';
 import ConfigSvg from './ConfigSvg.jsx';
 import ConfigSvgText from './ConfigSvgText.jsx';
 import WorkingParameters from './WorkingParameters.jsx';
@@ -175,6 +176,15 @@ class Index extends React.Component {
                         <h6 className={styles.h_file_type}>{t('Example')}</h6>
                     </button>
                     <button
+                        className={styles.btn_bw}
+                        onClick={() => {
+                            this.buildInSvgList.current.style.display = 'none';
+                            actions.onClickToUpload('bw');
+                        }}
+                    >
+                        <h6 className={styles.h_file_type}>{t('B&W')}</h6>
+                    </button>
+                    <button
                         className={styles.btn_svg}
                         onClick={() => actions.onClickToUpload('svg')}
                     >
@@ -203,6 +213,7 @@ class Index extends React.Component {
                         )}
                     />
                 </div>
+                <ConfigBW/>
                 <ConfigSvg/>
                 <ConfigSvgText/>
                 <Transformation/>
