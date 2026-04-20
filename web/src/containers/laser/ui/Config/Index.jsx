@@ -97,7 +97,11 @@ class Index extends React.Component {
             messageI18n.success('Export G-code success');
         },
         runBoundary: () => {
-            this.props.startTask(getGcode4runBoundary(), false)
+            const {model, laserFramingPower} = this.props;
+            const workSpeed = model
+                ? model.settings.working_parameters.children.work_speed.default_value
+                : 1500;
+            this.props.startTask(getGcode4runBoundary(laserFramingPower, workSpeed), false)
         },
         startTask: () => {
             if (!this.props.gcode) {
@@ -197,11 +201,13 @@ class Index extends React.Component {
 
 const mapStateToProps = (state) => {
     const {gcode, model, modelCount, isAllPreviewed} = state.laser;
+    const {laserFramingPower} = state.persistentData;
     return {
         gcode,
         model,
         isAllPreviewed,
         modelCount,
+        laserFramingPower,
     };
 };
 
