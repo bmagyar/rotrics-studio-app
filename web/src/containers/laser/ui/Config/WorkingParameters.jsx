@@ -4,6 +4,7 @@ import styles from './styles.css';
 import NumberInput from '../../../../components/NumberInput/Index.jsx';
 import Line from '../../../../components/Line/Index.jsx'
 import {actions as laserActions} from "../../../../reducers/laser";
+import {actions as persistentDataActions} from "../../../../reducers/persistentData";
 import {connect} from 'react-redux';
 import {ConfigText, ConfigTitle} from "../../../../components/Config";
 import {withTranslation} from 'react-i18next';
@@ -84,6 +85,9 @@ class WorkingParameters extends PureComponent {
         //power
         setPower: (value) => {
             this.props.updateWorkingParameters("power", value)
+        },
+        setFramingPower: (value) => {
+            this.props.setLaserFramingPower(value)
         }
     };
 
@@ -198,6 +202,20 @@ class WorkingParameters extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
+                        data-tip={t('Power used while tracing the boundary. 0 = laser off (dry run).')}>
+                        <Col span={19}>
+                            <ConfigText text={`${t('Framing Power')}(%)`}/>
+                        </Col>
+                        <Col span={5}>
+                            <NumberInput
+                                min={0}
+                                max={100}
+                                value={this.props.laserFramingPower}
+                                onAfterChange={actions.setFramingPower}/>
+                        </Col>
+                    </Row>
+                    <Row
+                        data-for={tooltipId}
                         data-tip={t(multi_pass.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(multi_pass.label)}`}/>
@@ -245,16 +263,19 @@ class WorkingParameters extends PureComponent {
 
 const mapStateToProps = (state) => {
     const {model, working_parameters, config} = state.laser;
+    const {laserFramingPower} = state.persistentData;
     return {
         model,
         working_parameters,
-        config
+        config,
+        laserFramingPower
     };
 };
 
 const mapDispatchToProps = (dispatch) => {
     return {
         updateWorkingParameters: (key, value) => dispatch(laserActions.updateWorkingParameters(key, value)),
+        setLaserFramingPower: (value) => dispatch(persistentDataActions.setLaserFramingPower(value)),
     };
 };
 

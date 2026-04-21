@@ -5,6 +5,7 @@ export const WORK_HEIGHT = {
     PEN: 'WORK_HEIGHT_PEN'
 };
 export const WORK_HEIGHT_PLACE_HOLDER = 'WORK_HEIGHT_PLACE_HOLDER';
+export const LASER_FRAMING_POWER = 'LASER_FRAMING_POWER';
 const IS_TOOLTIP_DISPLAYED = "IS_TOOLTIP_DISPLAYED";
 const ADVANCE = 'ADVANCE';
 const Z_PRESETS_KEY = 'Z_PRESETS';
@@ -27,6 +28,9 @@ if (persistents.get(WORK_HEIGHT.PEN) === null) {
 if (persistents.get(WORK_HEIGHT.LASER) === null) {
     persistents.set(WORK_HEIGHT.LASER, 0);
 }
+if (persistents.get(LASER_FRAMING_POWER) === null) {
+    persistents.set(LASER_FRAMING_POWER, 0);
+}
 
 // 高级模式默认关闭
 if (persistents.get(ADVANCE) === null) {
@@ -40,6 +44,7 @@ const INITIAL_STATE = {
     workHeightP3d: persistents.getFloat(WORK_HEIGHT.P3D),
     workHeightPen: persistents.getFloat(WORK_HEIGHT.PEN),
     workHeightLaser: persistents.getFloat(WORK_HEIGHT.LASER),
+    laserFramingPower: persistents.getFloat(LASER_FRAMING_POWER),
     isTooltipDisplayed: persistents.get(IS_TOOLTIP_DISPLAYED),
     // 高级模式
     advance: persistents.getFloat(ADVANCE),
@@ -67,6 +72,10 @@ export const actions = {
     setWorkHeightLaser: (value) => (dispatch, getState) => {
         dispatch(actions._updateState({workHeightLaser: value}));
         persistents.set(WORK_HEIGHT.LASER, value);
+    },
+    setLaserFramingPower: (value) => (dispatch, getState) => {
+        dispatch(actions._updateState({laserFramingPower: value}));
+        persistents.set(LASER_FRAMING_POWER, value);
     },
     saveZPreset: (label, z) => (dispatch, getState) => {
         const presets = [...getState().persistentData.zPresets];

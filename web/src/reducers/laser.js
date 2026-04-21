@@ -26,7 +26,7 @@ let rendererParent = null;
  * 所有模型都preview后才能调用，控制逻辑由ui处理
  * @returns {Array}
  */
-const getGcode4runBoundary = () => {
+const getGcode4runBoundary = (framingPower = 0, workSpeed = 1500) => {
     const min = -Number.MAX_VALUE;
     const max = Number.MAX_VALUE;
     let _minX = max, _minY = max;
@@ -46,14 +46,23 @@ const getGcode4runBoundary = () => {
     const p4 = {x: _minX.toFixed(1), y: _maxY.toFixed(1)};
     const gcodeArr = [];
     gcodeArr.push("M2000");
-    gcodeArr.push("G0 F2000");
-    gcodeArr.push(`G0 X${p1.x} Y${p1.y}`);
-    // gcodeArr.push("M3 S255");
-    gcodeArr.push(`G0 X${p2.x} Y${p2.y}`);
-    gcodeArr.push(`G0 X${p3.x} Y${p3.y}`);
-    gcodeArr.push(`G0 X${p4.x} Y${p4.y}`);
-    gcodeArr.push(`G0 X${p1.x} Y${p1.y}`);
-    // gcodeArr.push("M5");
+    if (framingPower > 0) {
+        const scaledPower = Math.floor(framingPower * 255 / 100);
+        gcodeArr.push(`G0 F2000 X${p1.x} Y${p1.y}`);
+        gcodeArr.push(`M3 S${scaledPower}`);
+        gcodeArr.push(`G1 F${workSpeed} X${p2.x} Y${p2.y}`);
+        gcodeArr.push(`G1 X${p3.x} Y${p3.y}`);
+        gcodeArr.push(`G1 X${p4.x} Y${p4.y}`);
+        gcodeArr.push(`G1 X${p1.x} Y${p1.y}`);
+        gcodeArr.push("M5");
+    } else {
+        gcodeArr.push("G0 F2000");
+        gcodeArr.push(`G0 X${p1.x} Y${p1.y}`);
+        gcodeArr.push(`G0 X${p2.x} Y${p2.y}`);
+        gcodeArr.push(`G0 X${p3.x} Y${p3.y}`);
+        gcodeArr.push(`G0 X${p4.x} Y${p4.y}`);
+        gcodeArr.push(`G0 X${p1.x} Y${p1.y}`);
+    }
     const gcode = gcodeArr.join("\n") + "\n";
     return gcode;
 };
