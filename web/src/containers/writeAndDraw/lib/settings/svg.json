@@ -104,8 +104,9 @@
             "label": "Fill Density",
             "description": "Fill Density description",
             "default_value": 4,
-            "type": "int",
-            "minimum_value": 1,
+            "type": "float",
+            "precision": 1,
+            "minimum_value": 0.5,
             "maximum_value": 10
           }
         }
