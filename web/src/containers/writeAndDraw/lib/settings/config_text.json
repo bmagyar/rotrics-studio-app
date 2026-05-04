@@ -2,23 +2,23 @@
   "icon": "base64xxx",
   "label": "Text",
   "type": "category",
-  "description": "Config of Text",
+  "description": "Text rendering settings.",
   "children": {
     "text": {
       "label": "Text",
-      "description": "text description",
+      "description": "Text content to draw.",
       "default_value": "Rotrics",
       "type": "string"
     },
     "font": {
       "label": "Font",
-      "description": "Font description",
+      "description": "Font family used to render the text.",
       "default_value": "/fonts/Arial Black.woff",
       "type": "string"
     },
     "font_size": {
       "label": "Font Size",
-      "description": "Font Size description",
+      "description": "Font size in points.",
       "default_value": 50,
       "type": "int"
     }
