@@ -1,7 +1,7 @@
 {
   "jog_pen_offset": {
     "label": "Jog Pen Offset",
-    "description": "Jog Pen Offset description",
+    "description": "Pen lift height above the page when not drawing (mm).",
     "placeholder": "#jog_pen_offset#",
     "default_value": 5,
     "type": "int",
