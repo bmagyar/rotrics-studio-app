@@ -1,13 +1,13 @@
 {
   "start_gcode": {
     "label": "Start Gcode",
-    "description": "Start Gcode description",
+    "description": "G-code prepended to every generated job.",
     "default_value": ";----------- Start Gcode -----------\nM2000 ;custom:line mode\nM888 P0 ;custom:header is write&draw\n;-----------------------------------",
     "type": "str"
   },
   "end_gcode": {
     "label": "End Gcode",
-    "description": "End Gcode description",
+    "description": "G-code appended to every generated job.",
     "default_value": ";----------- End Gcode -------------\n;-----------------------------------",
     "type": "str"
   },
@@ -15,7 +15,7 @@
     "icon": "base64xxx",
     "label": "Transformation",
     "type": "category",
-    "description": "Transformation B&W description",
+    "description": "Position, size, and orientation of the model on the bed.",
     "children": {
       "img_width": {
         "default_value": 0
@@ -25,7 +25,7 @@
       },
       "width": {
         "label": "Width",
-        "description": "Width description",
+        "description": "Width of the model on the bed (mm).",
         "default_value": 5,
         "type": "int",
         "unit": "mm",
@@ -34,7 +34,7 @@
       },
       "height": {
         "label": "Height",
-        "description": "Height description",
+        "description": "Height of the model on the bed (mm).",
         "default_value": 5,
         "type": "int",
         "unit": "mm",
@@ -43,7 +43,7 @@
       },
       "rotation": {
         "label": "Rotation",
-        "description": "Rotation description",
+        "description": "Rotation of the model around its centre (degrees, counter-clockwise).",
         "default_value": 0,
         "type": "int",
         "unit": "degree",
@@ -52,7 +52,7 @@
       },
       "x": {
         "label": "Move X",
-        "description": "Move X description",
+        "description": "Horizontal position of the model centre (mm).",
         "default_value": 0,
         "type": "int",
         "unit": "mm",
@@ -61,7 +61,7 @@
       },
       "y": {
         "label": "Move Y",
-        "description": "Move Y description",
+        "description": "Vertical position of the model centre (mm).",
         "default_value": 300,
         "type": "int",
         "unit": "mm",
@@ -70,7 +70,7 @@
       },
       "flip_model": {
         "label": "Flip Model",
-        "description": "Flip Model description",
+        "description": "Mirror the model along an axis, or none.",
         "default_value": "None",
         "type": "enum",
         "options": {
@@ -86,11 +86,11 @@
     "icon": "base64xxx",
     "label": "Svg",
     "type": "category",
-    "description": "Config of Vector",
+    "description": "Vector path settings.",
     "children": {
       "optimize_path": {
         "label": "Optimize Path",
-        "description": "Optimize Path description",
+        "description": "Reorder paths to reduce travel between strokes.",
         "default_value": false,
         "type": "bool"
       },
@@ -98,11 +98,11 @@
         "default_value": false,
         "label": "Fill",
         "type": "bool",
-        "description": "Fill description",
+        "description": "Fill closed shapes with parallel lines.",
         "children": {
           "fill_density": {
             "label": "Fill Density",
-            "description": "Fill Density description",
+            "description": "Fill lines per millimetre; accepts fractions.",
             "default_value": 4,
             "type": "float",
             "precision": 1,
@@ -117,11 +117,11 @@
     "icon": "base64xxx",
     "label": "Working Parameters",
     "type": "category",
-    "description": "Working Parameters description",
+    "description": "Speed, power, and pass settings used during the job.",
     "children": {
       "work_speed": {
         "label": "Work Speed",
-        "description": "Determines how fast the front end moves when it’s working.",
+        "description": "Movement speed while working (mm/min).",
         "placeholder": "#work_speed#",
         "default_value": 2000,
         "type": "int",
@@ -131,7 +131,7 @@
       },
       "jog_speed": {
         "label": "Jog Speed",
-        "description": "Determines how fast the front end moves when it’s not working.",
+        "description": "Movement speed when not working (mm/min).",
         "placeholder": "#jog_speed#",
         "default_value": 2000,
         "type": "int",
@@ -142,7 +142,7 @@
       },
       "dwell_time": {
         "label": "Dwell Time",
-        "description": "Pause DexArm and wait before turning ON laser. It helps improve laser engraving quality.",
+        "description": "Pause before each laser-on pulse to stabilise the beam (ms).",
         "placeholder": "#dwell_time#",
         "default_value": 0,
         "type": "int",
@@ -153,7 +153,7 @@
       },
       "engrave_time": {
         "label": "Engrave Time",
-        "description": "Determines how long the laser keeps on when it's engraving a dot.",
+        "description": "Duration of each laser-on pulse in dot mode (ms).",
         "placeholder": "#engrave_time#",
         "default_value": 5,
         "type": "int",
@@ -164,7 +164,7 @@
       },
       "power": {
         "label": "Power",
-        "description": "Power to use when laser is working.",
+        "description": "Laser power output (%).",
         "placeholder": "#power#",
         "default_value": 50,
         "type": "int",
@@ -174,13 +174,13 @@
       },
       "multi_pass": {
         "label": "Multi-Pass",
-        "description": "When enabled, the Arm will run the G-code multiple times automatically according to the below settings. This feature helps you cut materials that can't be cut with only one pass.",
+        "description": "Run the G-code multiple times to reach deeper cuts.",
         "default_value": false,
         "type": "bool",
         "children": {
           "passes": {
             "label": "Passes",
-            "description": "Determines how many times the printer will run the G-code automatically.",
+            "description": "Number of times to repeat the G-code.",
             "default_value": 2,
             "type": "int",
             "minimum_value": 1,
@@ -188,7 +188,7 @@
           },
           "pass_depth": {
             "label": "Pass Depth",
-            "description": "Determines how much the laser module will be lowered after each pass.",
+            "description": "Lower the laser by this distance after each pass (mm).",
             "default_value": 1,
             "type": "int",
             "unit": "mm",
