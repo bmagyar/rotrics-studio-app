@@ -1,13 +1,13 @@
 {
   "start_gcode": {
     "label": "Start Gcode",
-    "description": "Start Gcode description",
+    "description": "G-code prepended to every generated job.",
     "default_value": ";----------- Start Gcode -----------\nM2000 ;custom:line mode\nM888 P0 ;custom:header is write&draw\n;-----------------------------------",
     "type": "str"
   },
   "end_gcode": {
     "label": "End Gcode",
-    "description": "End Gcode description",
+    "description": "G-code appended to every generated job.",
     "default_value": ";----------- End Gcode -------------\n;-----------------------------------",
     "type": "str"
   },
@@ -15,7 +15,7 @@
     "icon": "base64xxx",
     "label": "Transformation",
     "type": "category",
-    "description": "Transformation B&W description",
+    "description": "Position, size, and orientation of the model on the bed.",
     "children": {
       "img_width": {
         "default_value": 0
@@ -25,7 +25,7 @@
       },
       "width": {
         "label": "Width",
-        "description": "Width description",
+        "description": "Width of the model on the bed (mm).",
         "default_value": 5,
         "type": "int",
         "unit": "mm",
@@ -34,7 +34,7 @@
       },
       "height": {
         "label": "Height",
-        "description": "Height description",
+        "description": "Height of the model on the bed (mm).",
         "default_value": 5,
         "type": "int",
         "unit": "mm",
@@ -43,7 +43,7 @@
       },
       "rotation": {
         "label": "Rotation",
-        "description": "Rotation description",
+        "description": "Rotation of the model around its centre (degrees, counter-clockwise).",
         "default_value": 0,
         "type": "int",
         "unit": "degree",
@@ -52,7 +52,7 @@
       },
       "x": {
         "label": "Move X",
-        "description": "Move X description",
+        "description": "Horizontal position of the model centre (mm).",
         "default_value": 0,
         "type": "int",
         "unit": "mm",
@@ -61,7 +61,7 @@
       },
       "y": {
         "label": "Move Y",
-        "description": "Move Y description",
+        "description": "Vertical position of the model centre (mm).",
         "default_value": 300,
         "type": "int",
         "unit": "mm",
@@ -70,7 +70,7 @@
       },
       "flip_model": {
         "label": "Flip Model",
-        "description": "Flip Model description",
+        "description": "Mirror the model along an axis, or none.",
         "default_value": "None",
         "type": "enum",
         "options": {
@@ -86,17 +86,17 @@
     "icon": "base64xxx",
     "label": "B&W",
     "type": "category",
-    "description": "Config of B&W",
+    "description": "Black-and-white drawing settings.",
     "children": {
       "invert": {
         "label": "Invert",
-        "description": "Inverts black to white and vise versa.",
+        "description": "Swap black and white before processing.",
         "default_value": false,
         "type": "bool"
       },
       "bw": {
         "label": "Threshold",
-        "description": "Set a threshold to make sure the pixel whose greyscale is less than the threshold to black.",
+        "description": "Pixels darker than this value are treated as black (0–255).",
         "default_value": 140,
         "type": "int",
         "minimum_value": 0,
@@ -104,7 +104,7 @@
       },
       "line_direction": {
         "label": "Line Direction",
-        "description": "Select the direction of the engraving path.",
+        "description": "Direction of the parallel fill lines.",
         "default_value": "Horizontal",
         "type": "enum",
         "options": {
@@ -116,7 +116,7 @@
       },
       "density": {
         "label": "Density",
-        "description": "Determines how fine and smooth the engraved picture will be. The bigger this value is, the better quality you will get.",
+        "description": "Fill lines per millimetre.",
         "default_value": 4,
         "type": "int",
         "unit": "dot/mm",
@@ -129,11 +129,11 @@
     "icon": "base64xxx",
     "label": "Working Parameters",
     "type": "category",
-    "description": "Working Parameters description",
+    "description": "Speed, power, and pass settings used during the job.",
     "children": {
       "work_speed": {
         "label": "Work Speed",
-        "description": "Determines how fast the front end moves when it's working.",
+        "description": "Movement speed while working (mm/min).",
         "placeholder": "#work_speed#",
         "default_value": 2000,
         "type": "int",
@@ -143,7 +143,7 @@
       },
       "jog_speed": {
         "label": "Jog Speed",
-        "description": "Determines how fast the front end moves when it's not working.",
+        "description": "Movement speed when not working (mm/min).",
         "placeholder": "#jog_speed#",
         "default_value": 2000,
         "type": "int",
