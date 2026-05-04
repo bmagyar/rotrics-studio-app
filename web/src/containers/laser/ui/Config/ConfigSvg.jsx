@@ -78,6 +78,7 @@ class ConfigSvg extends PureComponent {
                                 min={fill_density.minimum_value}
                                 max={fill_density.maximum_value}
                                 value={fill_density.default_value}
+                                precision={fill_density.precision}
                                 onAfterChange={actions.setFillDensity}/>
                         </Col>
                     </Row>
