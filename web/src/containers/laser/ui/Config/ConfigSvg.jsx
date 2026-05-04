@@ -58,7 +58,7 @@ class ConfigSvg extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Set the degree to which an area is filled with laser dots.')}>
+                        data-tip={t(fill.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(fill.label)}`}/>
                         </Col>
@@ -69,7 +69,7 @@ class ConfigSvg extends PureComponent {
                     {fill.default_value &&
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Content of the Text.')}>
+                        data-tip={t(fill_density.description)}>
                         <Col span={17} push={2}>
                             <ConfigText text={`${t(fill_density.label)}`}/>
                         </Col>
