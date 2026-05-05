@@ -49,7 +49,7 @@ class WorkingParameters extends PureComponent {
                     <ConfigTitle text={t(working_parameters.label)}/>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Determines how fast the front end moves when it’s working.')}>
+                        data-tip={t(work_speed.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(work_speed.label)}(${work_speed.unit})`}/>
                         </Col>
@@ -63,7 +63,7 @@ class WorkingParameters extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Determines how fast the front end moves when it’s working.')}>
+                        data-tip={t(jog_speed.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(jog_speed.label)}(${jog_speed.unit})`}/>
                         </Col>
@@ -77,7 +77,7 @@ class WorkingParameters extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Determines the offset of the pen when it is not drawn.')}>
+                        data-tip={t(jog_pen_offset.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(jog_pen_offset.label)}(${jog_pen_offset.unit})`}/>
                         </Col>

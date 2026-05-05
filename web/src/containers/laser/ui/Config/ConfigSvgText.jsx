@@ -71,7 +71,7 @@ class ConfigSvgText extends PureComponent {
                     <ConfigTitle text={t('Text')}/>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Content of the Text.')}>
+                        data-tip={t(text.description)}>
                         <Col span={13}>
                             <ConfigText text={`${t('Content')}`}/>
                         </Col>
@@ -86,7 +86,7 @@ class ConfigSvgText extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Font of the Text.')}>
+                        data-tip={t(font.description)}>
                         <Col span={13}>
                             <ConfigText text={`${t(font.label)}`}/>
                         </Col>
@@ -96,7 +96,7 @@ class ConfigSvgText extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Font size of the Text.')}>
+                        data-tip={t(font_size.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(font_size.label)}`}/>
                         </Col>
@@ -110,7 +110,7 @@ class ConfigSvgText extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Optimizes the path based on the proximity of the lines in the image.')}>
+                        data-tip={t(optimize_path.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(optimize_path.label)}`}/>
                         </Col>
@@ -120,7 +120,7 @@ class ConfigSvgText extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Set the degree to which an area is filled with laser dots.')}>
+                        data-tip={t(fill.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(fill.label)}`}/>
                         </Col>

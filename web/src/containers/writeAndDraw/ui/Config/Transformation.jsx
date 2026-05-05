@@ -76,7 +76,7 @@ class Transformation extends PureComponent {
                     <ConfigTitle text={t(transformation.label)}/>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Width of the picture.')}>
+                        data-tip={t(width.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(width.label)}(${width.unit})`}/>
                         </Col>
@@ -91,7 +91,7 @@ class Transformation extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Height of the picture.')}>
+                        data-tip={t(height.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(height.label)}(${height.unit})`}/>
                         </Col>
@@ -106,7 +106,7 @@ class Transformation extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Rotate of the picture.')}>
+                        data-tip={t(rotation.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(rotation.label)}(${rotation.unit})`}/>
                         </Col>
@@ -120,7 +120,7 @@ class Transformation extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('X offset of the picture.')}>
+                        data-tip={t(x.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(x.label)}(${x.unit})`}/>
                         </Col>
@@ -134,7 +134,7 @@ class Transformation extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Y offset of the picture.')}>
+                        data-tip={t(y.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(y.label)}(${y.unit})`}/>
                         </Col>
@@ -148,7 +148,7 @@ class Transformation extends PureComponent {
                     </Row>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Flip the selected picture vertically, horizontally or in both directions.')}>
+                        data-tip={t(flip_model.description)}>
                         <Col span={15}>
                             <ConfigText text={`${t(flip_model.label)}`}/>
                         </Col>
