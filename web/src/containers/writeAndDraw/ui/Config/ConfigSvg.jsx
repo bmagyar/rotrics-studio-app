@@ -48,7 +48,7 @@ class ConfigSvg extends PureComponent {
                     <ConfigTitle text={t(config.label)}/>
                     <Row
                         data-for={tooltipId}
-                        data-tip={t('Optimizes the path based on the proximity of the lines in the image.')}>
+                        data-tip={t(optimize_path.description)}>
                         <Col span={19}>
                             <ConfigText text={`${t(optimize_path.label)}`}/>
                         </Col>
